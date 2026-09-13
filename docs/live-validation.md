@@ -15,7 +15,7 @@ This file records only public-safe facts. It deliberately excludes tenant, subsc
 |---|---|---|
 | Unit tests and lint | Pass | 41 tests, 91% coverage, Ruff clean |
 | Public-tree secret/privacy scan | Pass | No configured finding; values never printed |
-| Git history secret/privacy scan | Pending initial commit | Repeated immediately before public push |
+| Git history secret/privacy scan | Pass | Full reachable history scanned after the initial commit and immediately before public push |
 | Workspace and four demo items created | Pass | Lakehouse, warehouse, notebook, and pipeline; lakehouse also produced its managed SQL endpoint |
 | Pipeline definition read-back | Pass | One bound notebook activity present |
 | Synthetic notebook run | Pass | Completed; no row output retained |
