@@ -1,5 +1,7 @@
 # Microsoft Fabric OneLake catalog governance POC
 
+[![CI](https://github.com/regshih/fabric-onelake-catalog-governance-poc/actions/workflows/ci.yml/badge.svg)](https://github.com/regshih/fabric-onelake-catalog-governance-poc/actions/workflows/ci.yml)
+
 A customer-ready reference for assessing and improving governance in an **existing Microsoft Fabric workspace** that can contain lakehouses, warehouses, notebooks, data pipelines, semantic models, mirrored items, shortcuts, and other Fabric items.
 
 OneLake catalog is built into Fabric; it is not a separate service to deploy. This repository operationalizes the practices that make catalog entries useful and safe: durable business domains, meaningful metadata, controlled tags, sensitivity labels, endorsement gates, least privilege, OneLake security, lineage, source-boundary reviews, lifecycle management, and auditing.
