@@ -1,0 +1,107 @@
+schema_version: 1
+
+# Domains should model durable business ownership, not individual projects. Change this
+# sample name to an approved existing domain before applying it in a customer tenant.
+workspace:
+  domain_name: Customer Analytics
+  domain_description: Governed customer data products and analytical workloads.
+  require_domain: true
+  description_min_length: 30
+  description: Public-safe OneLake catalog governance reference estate using only synthetic data.
+
+# Fabric creates some items, such as a lakehouse SQL endpoint, as managed companions.
+managed_item_types:
+  - SQLEndpoint
+
+naming_patterns:
+  Lakehouse: "[a-z][a-z0-9_]{2,79}"
+  Warehouse: "[a-z][a-z0-9_]{2,79}"
+  Notebook: "nb_[a-z][a-z0-9_]{2,77}"
+  DataPipeline: "pl_[a-z][a-z0-9_]{2,77}"
+
+item_defaults:
+  description_required: true
+
+sensitivity_label_item_types:
+  - Lakehouse
+  - Warehouse
+  - MirroredDatabase
+  - MirroredWarehouse
+  - MirroredAzureDatabricksCatalog
+
+# Tags are names, never IDs. Fabric/domain admins own the vocabulary. The remediation
+# command applies only definitions that already exist and reports the remainder as blocked.
+admin:
+  tenant_tags:
+    - classification-internal
+    - classification-confidential
+    - lifecycle-poc
+    - quality-candidate
+    - layer-curated
+    - layer-serving
+
+items:
+  governed_curated_lh:
+    type: Lakehouse
+    required: true
+    description: Governed synthetic data product with public metrics and sensitive-like customer examples.
+    tags:
+      - classification-confidential
+      - lifecycle-poc
+      - quality-candidate
+      - layer-curated
+  governed_serving_wh:
+    type: Warehouse
+    required: true
+    description: Governed SQL serving surface for approved synthetic analytical products and consumers.
+    tags:
+      - classification-internal
+      - lifecycle-poc
+      - quality-candidate
+      - layer-serving
+  nb_seed_governance_demo:
+    type: Notebook
+    required: true
+    description: Creates synthetic public and restricted-like Delta tables for OneLake security demonstrations.
+    tags:
+      - classification-internal
+      - lifecycle-poc
+  pl_governance_demo_refresh:
+    type: DataPipeline
+    required: true
+    description: Orchestrates the synthetic governance demo refresh and establishes catalog lineage.
+    tags:
+      - classification-internal
+      - lifecycle-poc
+
+# Group and tenant IDs are read only from environment variables. The helper GETs and
+# preserves every current role, uses the returned ETag, performs a Fabric server dry-run,
+# and applies only when --apply is supplied. Test with a Viewer; admins bypass these roles.
+onelake_roles:
+  governed_curated_lh:
+    - name: PublicMetricsReader
+      action: Read
+      paths:
+        - /Tables/public_metrics
+      member_group_env: FABRIC_PUBLIC_READER_GROUP_ID
+      tenant_id_env: FABRIC_TENANT_ID
+    - name: UsRestrictedMetricsReader
+      action: Read
+      paths:
+        - /Tables/restricted_customer_metrics
+      member_group_env: FABRIC_US_RESTRICTED_READER_GROUP_ID
+      tenant_id_env: FABRIC_TENANT_ID
+      row_constraints:
+        - tablePath: /Tables/restricted_customer_metrics
+          value: "[region] = 'US'"
+      column_constraints:
+        - tablePath: /Tables/restricted_customer_metrics
+          columnNames:
+            - customer_id
+            - region
+            - segment
+            - annual_value
+            - classification
+          columnEffect: Permit
+          columnAction:
+            - Read

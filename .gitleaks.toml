@@ -1,0 +1,13 @@
+title = "fabric-onelake-catalog-governance-poc"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Documented placeholders and reserved synthetic values"
+regexTarget = "match"
+regexes = [
+  '''<[^>]+>''',
+  '''00000000-0000-0000-0000-000000000000''',
+  '''[A-Za-z0-9._%+-]+@example\.invalid'''
+]

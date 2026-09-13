@@ -1,0 +1,138 @@
+import copy
+
+import pytest
+
+from onelake_governance.client import FabricApiError
+from onelake_governance.onelake_security import apply_policy_role, merged_roles, role_from_policy
+
+
+def test_role_merge_preserves_unrelated_unknown_fields_and_does_not_mutate():
+    current = [
+        {
+            "id": "server-only",
+            "name": "DefaultReader",
+            "kind": "Policy",
+            "decisionRules": [{"effect": "Permit", "permission": []}],
+            "members": {"fabricItemMembers": []},
+            "futureServerField": "preserve-in-memory-but-not-request",
+        }
+    ]
+    original = copy.deepcopy(current)
+    desired = {
+        "name": "PublicMetricsReader",
+        "kind": "Policy",
+        "decisionRules": [{"effect": "Permit", "permission": []}],
+        "members": {"microsoftEntraMembers": []},
+    }
+    payload = merged_roles(current, desired)
+    assert current == original
+    assert [role["name"] for role in payload["value"]] == ["DefaultReader", "PublicMetricsReader"]
+    assert "futureServerField" not in payload["value"][0]
+    assert payload["value"][0]["members"] == {"fabricItemMembers": []}
+
+
+def test_existing_named_role_is_replaced_once():
+    desired = {"name": "Readers", "kind": "Policy", "decisionRules": [], "members": {}}
+    payload = merged_roles([{"name": "Readers", "kind": "Policy", "decisionRules": []}], desired)
+    assert payload["value"] == [desired]
+
+
+def test_duplicate_named_role_fails_closed():
+    with pytest.raises(FabricApiError, match="Multiple"):
+        merged_roles([{"name": "Readers"}, {"name": "Readers"}], {"name": "Readers"})
+
+
+def test_role_reads_group_ids_from_environment_without_returning_them(monkeypatch):
+    monkeypatch.setenv("GROUP_ID", "group-private")
+    monkeypatch.setenv("TENANT_ID", "tenant-private")
+    role = role_from_policy(
+        {
+            "name": "Readers",
+            "member_group_env": "GROUP_ID",
+            "tenant_id_env": "TENANT_ID",
+            "paths": ["/Tables/public_metrics"],
+        }
+    )
+    assert role["members"]["microsoftEntraMembers"][0]["objectId"] == "group-private"
+    assert role["decisionRules"][0]["permission"][0]["attributeValueIncludedIn"] == [
+        "/Tables/public_metrics"
+    ]
+
+
+def test_role_requires_explicit_paths_and_environment(monkeypatch):
+    monkeypatch.delenv("MISSING", raising=False)
+    with pytest.raises(FabricApiError, match="Set MISSING"):
+        role_from_policy(
+            {
+                "name": "Readers",
+                "member_group_env": "MISSING",
+                "tenant_id_env": "MISSING",
+                "paths": ["/Tables/public_metrics"],
+            }
+        )
+
+
+class Response:
+    status_code = 200
+    content = b"x"
+    headers = {"ETag": '"current"'}
+
+    @staticmethod
+    def json():
+        return {"value": [{"name": "DefaultReader", "decisionRules": [], "members": {}}]}
+
+
+class Client:
+    def __init__(self):
+        self.calls = []
+
+    @staticmethod
+    def workspaces():
+        return [{"id": "workspace-id", "displayName": "Demo"}]
+
+    @staticmethod
+    def items(_workspace_id):
+        return [{"id": "lakehouse-id", "displayName": "Lake", "type": "Lakehouse"}]
+
+    @staticmethod
+    def named(objects, name, object_type=None):
+        return next(
+            (
+                obj
+                for obj in objects
+                if obj["displayName"] == name
+                and (object_type is None or obj.get("type") == object_type)
+            ),
+            None,
+        )
+
+    def request(self, method, path, **kwargs):
+        self.calls.append((method, path, kwargs))
+        return Response()
+
+    @staticmethod
+    def json(response):
+        return response.json()
+
+
+def test_apply_role_always_server_dry_runs_and_redacts_ids(monkeypatch):
+    monkeypatch.setenv("GROUP_ID", "group-private")
+    monkeypatch.setenv("TENANT_ID", "tenant-private")
+    client = Client()
+    result = apply_policy_role(
+        client,
+        "Demo",
+        "Lake",
+        {
+            "name": "Readers",
+            "member_group_env": "GROUP_ID",
+            "tenant_id_env": "TENANT_ID",
+            "paths": ["/Tables/public_metrics"],
+        },
+        apply=True,
+    )
+    assert [call[0] for call in client.calls] == ["GET", "PUT", "PUT"]
+    assert client.calls[1][1].endswith("?dryRun=true")
+    assert client.calls[1][2]["json"] == client.calls[2][2]["json"]
+    assert "group-private" not in str(result)
+    assert "tenant-private" not in str(result)

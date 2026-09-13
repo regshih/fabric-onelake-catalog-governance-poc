@@ -1,0 +1,32 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "name": "SeedGovernanceDemo",
+        "type": "TridentNotebook",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.01:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 30
+        },
+        "typeProperties": {
+          "notebookId": "{{ITEM_ID:notebook}}",
+          "workspaceId": "{{WORKSPACE_ID}}",
+          "parameters": {
+            "workspace_id": {
+              "value": "{{WORKSPACE_ID}}",
+              "type": "string"
+            },
+            "lakehouse_id": {
+              "value": "{{ITEM_ID:lakehouse}}",
+              "type": "string"
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {},
+    "variables": {}
+  }
+}
