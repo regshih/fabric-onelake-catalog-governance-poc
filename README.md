@@ -130,6 +130,7 @@ Use [prompt/LLM_CODE_EDITOR_PROMPT.md](prompt/LLM_CODE_EDITOR_PROMPT.md) with a 
 - [Architecture and trust boundaries](docs/architecture.md)
 - [Control matrix](docs/control-matrix.md)
 - [Customer adoption runbook](docs/adoption-runbook.md)
+- [Least-privileged test identities](docs/test-identities.md)
 - [Live validation record](docs/live-validation.md)
 - [Known limitations](docs/known-limitations.md)
 - [Security and public-release process](SECURITY.md)

@@ -22,7 +22,7 @@ Customer context:
 
 Your task:
 
-1. Read the entire repository, especially `README.md`, `SECURITY.md`, `docs/control-matrix.md`, `docs/adoption-runbook.md`, `docs/known-limitations.md`, and `policy/governance-policy.yaml`.
+1. Read the entire repository, especially `README.md`, `SECURITY.md`, `docs/control-matrix.md`, `docs/adoption-runbook.md`, `docs/test-identities.md`, `docs/known-limitations.md`, and `policy/governance-policy.yaml`.
 2. Inspect the working tree before editing. Preserve unrelated user changes. Do not create or change Azure, Fabric, Entra, Purview, or GitHub resources unless I separately authorize deployment.
 3. Verify current Microsoft documentation before changing any Fabric API path, payload, permission, item support list, preview status, or security recommendation. Use only Microsoft primary documentation for technical claims.
 4. Customize the versioned policy with durable domain intent, approved tag names, item descriptions, naming rules, sensitivity-label coverage, and OneLake role templates. Keep IDs out of tracked files; role templates must reference environment-variable names.
@@ -33,6 +33,7 @@ Your task:
    - no delete, rename, capacity start/stop/resize, sharing, or role-removal automation;
    - no report fields containing tenant, subscription, capacity, workspace, item, domain, operation, principal, or connection IDs;
    - OneLake full-role updates preserve every existing role/field, use the GET ETag, call `dryRun=true`, and only then apply the identical payload;
+   - OneLake RLS rules use a complete `SELECT * FROM ... WHERE ...` statement and are tested through an engine that can enforce RLS/CLS;
    - no claim that Admin/Member/Contributor identities are restricted by OneLake roles;
    - no automatic certification, master-data endorsement, label selection, DLP, or compliance claim.
 7. Add or update tests for every behavior change. Tests must prove reports are redacted, dry-runs do not write, policy validation fails closed, definition placeholders do not remain, and role merges preserve unrelated content.

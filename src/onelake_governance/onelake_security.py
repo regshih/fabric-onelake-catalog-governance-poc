@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import copy
 import os
+import re
 from typing import Any
 
 from .client import FabricApiError, FabricClient
 
 WRITABLE_ROLE_FIELDS = ("name", "kind", "decisionRules", "members")
+RLS_STATEMENT = re.compile(r"^SELECT\s+\*\s+FROM\s+.+\s+WHERE\s+.+$", re.IGNORECASE | re.DOTALL)
 
 
 def _required_env(name: str) -> str:
@@ -16,6 +18,17 @@ def _required_env(name: str) -> str:
     if not value or value.startswith("<"):
         raise FabricApiError(f"Set {name} in the process environment; do not commit the value")
     return value
+
+
+def _validated_row_constraints(settings: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = settings.get("row_constraints", [])
+    for row in rows:
+        value = str(row.get("value", "")).strip()
+        if not RLS_STATEMENT.fullmatch(value):
+            raise FabricApiError(
+                "Each OneLake RLS rule must be a complete SELECT * FROM ... WHERE ... statement"
+            )
+    return rows
 
 
 def role_from_policy(settings: dict[str, Any]) -> dict[str, Any]:
@@ -35,8 +48,9 @@ def role_from_policy(settings: dict[str, Any]) -> dict[str, Any]:
     constraints: dict[str, Any] = {}
     if settings.get("column_constraints"):
         constraints["columns"] = settings["column_constraints"]
-    if settings.get("row_constraints"):
-        constraints["rows"] = settings["row_constraints"]
+    row_constraints = _validated_row_constraints(settings)
+    if row_constraints:
+        constraints["rows"] = row_constraints
     if constraints:
         decision_rule["constraints"] = constraints
     return {

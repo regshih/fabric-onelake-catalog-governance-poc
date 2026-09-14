@@ -59,6 +59,38 @@ def test_role_reads_group_ids_from_environment_without_returning_them(monkeypatc
     ]
 
 
+def test_role_preserves_complete_rls_and_cls_constraints(monkeypatch):
+    monkeypatch.setenv("GROUP_ID", "group-private")
+    monkeypatch.setenv("TENANT_ID", "tenant-private")
+    role = role_from_policy(
+        {
+            "name": "RestrictedReaders",
+            "member_group_env": "GROUP_ID",
+            "tenant_id_env": "TENANT_ID",
+            "paths": ["/Tables/restricted_customer_metrics"],
+            "row_constraints": [
+                {
+                    "tablePath": "/Tables/restricted_customer_metrics",
+                    "value": (
+                        "SELECT * FROM [restricted_customer_metrics] WHERE [region] = 'US'"
+                    ),
+                }
+            ],
+            "column_constraints": [
+                {
+                    "tablePath": "/Tables/restricted_customer_metrics",
+                    "columnNames": ["customer_id", "region"],
+                    "columnEffect": "Permit",
+                    "columnAction": ["Read"],
+                }
+            ],
+        }
+    )
+    constraints = role["decisionRules"][0]["constraints"]
+    assert constraints["rows"][0]["value"].startswith("SELECT * FROM")
+    assert constraints["columns"][0]["columnNames"] == ["customer_id", "region"]
+
+
 def test_role_requires_explicit_paths_and_environment(monkeypatch):
     monkeypatch.delenv("MISSING", raising=False)
     with pytest.raises(FabricApiError, match="Set MISSING"):
@@ -68,6 +100,26 @@ def test_role_requires_explicit_paths_and_environment(monkeypatch):
                 "member_group_env": "MISSING",
                 "tenant_id_env": "MISSING",
                 "paths": ["/Tables/public_metrics"],
+            }
+        )
+
+
+def test_role_rejects_predicate_only_rls(monkeypatch):
+    monkeypatch.setenv("GROUP_ID", "group-private")
+    monkeypatch.setenv("TENANT_ID", "tenant-private")
+    with pytest.raises(FabricApiError, match="complete SELECT"):
+        role_from_policy(
+            {
+                "name": "Readers",
+                "member_group_env": "GROUP_ID",
+                "tenant_id_env": "TENANT_ID",
+                "paths": ["/Tables/restricted_customer_metrics"],
+                "row_constraints": [
+                    {
+                        "tablePath": "/Tables/restricted_customer_metrics",
+                        "value": "[region] = 'US'",
+                    }
+                ],
             }
         )
 
