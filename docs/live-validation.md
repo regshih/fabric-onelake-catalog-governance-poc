@@ -4,7 +4,7 @@ This file records only public-safe facts. It deliberately excludes tenant, subsc
 
 ## Validation environment
 
-- Validation date: 2026-09-13
+- Validation date: 2026-09-14
 - Authentication: passwordless Microsoft Entra user via Azure CLI / `DefaultAzureCredential`
 - Capacity: existing active Fabric capacity; no capacity was provisioned or resized
 - Data: deterministic synthetic records only
