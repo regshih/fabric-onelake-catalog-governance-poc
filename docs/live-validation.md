@@ -25,7 +25,7 @@ This file records only public-safe facts. It deliberately excludes tenant, subsc
 | Domain assignment | Pass | Workspace assigned to the policy-approved `Customer Analytics` domain |
 | Catalog tagging | Pass | Required classification, lifecycle, quality, and medallion-layer tags applied to all four governed items |
 | Catalog search | Pass | Five workspace items returned after metadata propagation |
-| Entra test identity baseline | Pass | Four security groups and two single-tenant service principals; test principals have no API permissions or retained credentials |
+| Entra test identity baseline | Pass | Four security groups and two single-tenant service principals; every object has a lifecycle owner, and test principals have no API permissions or retained credentials |
 | Group-based workspace roles | Pass with exception | Admin group and two Viewer groups assigned; direct owner remains temporarily as a break-glass path |
 | OneLake security roles | Pass with warning | Public table role and US RLS/CLS role applied after server dry-runs; broad `DefaultReader` remains but does not grant data to the Viewer-only test groups |
 | Live policy assessment | Pass with follow-up | 15 pass, 0 fail, 5 warn, 4 manual; detailed report remains ignored/unpublished |
