@@ -58,7 +58,7 @@ def plan_remediation(
     desired_domain = (
         domain_name.strip() or str(policy.get("workspace", {}).get("domain_name", "")).strip()
     )
-    if desired_domain and not workspace.get("domainId"):
+    if desired_domain:
         domain = client.named(_domains(client), desired_domain)
         if not domain:
             changes.append(
@@ -69,7 +69,7 @@ def plan_remediation(
                     "The approved domain is not visible; ask a Fabric/domain admin to create or grant it.",
                 )
             )
-        else:
+        elif workspace.get("domainId") != domain.get("id"):
             if apply:
                 client.request(
                     "POST",

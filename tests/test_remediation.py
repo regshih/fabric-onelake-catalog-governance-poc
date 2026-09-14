@@ -74,3 +74,35 @@ def test_apply_writes_only_descriptions_domain_and_existing_tags():
     assert "workspaces/workspace-id/items/item-id" in paths
     assert "workspaces/workspace-id/items/item-id/applyTags" in paths
     assert all("delete" not in method.casefold() for method, _path, _kwargs in client.writes)
+
+
+def test_remediation_reassigns_workspace_from_wrong_domain():
+    client = Client()
+    original = client.workspaces
+    client.workspaces = lambda: [
+        {
+            **original()[0],
+            "domainId": "different-domain-id",
+        }
+    ]
+
+    changes = plan_remediation(client, "Demo", POLICY, domain_name="Approved")
+
+    assert any(
+        change.action == "assign-domain" and change.status == "planned" for change in changes
+    )
+
+
+def test_remediation_skips_workspace_already_in_approved_domain():
+    client = Client()
+    original = client.workspaces
+    client.workspaces = lambda: [
+        {
+            **original()[0],
+            "domainId": "domain-id",
+        }
+    ]
+
+    changes = plan_remediation(client, "Demo", POLICY, domain_name="Approved")
+
+    assert not any(change.action == "assign-domain" for change in changes)
