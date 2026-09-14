@@ -14,7 +14,7 @@ from .assessment import assess
 from .bootstrap import bootstrap_demo
 from .client import FabricClient
 from .inventory import collect_snapshot
-from .onelake_security import apply_policy_role
+from .onelake_security import apply_policy_role, remove_named_role
 from .policy import load_policy
 from .remediation import changes_to_dict, plan_remediation
 from .reporting import write_report
@@ -63,6 +63,14 @@ def build_parser() -> argparse.ArgumentParser:
     security.add_argument("--lakehouse", required=True)
     security.add_argument("--role", required=True)
     security.add_argument("--apply", action="store_true")
+
+    remove_security = subparsers.add_parser(
+        "remove-onelake-role", help="server-dry-run/remove one explicitly named role"
+    )
+    remove_security.add_argument("--workspace", default="")
+    remove_security.add_argument("--lakehouse", required=True)
+    remove_security.add_argument("--role", required=True)
+    remove_security.add_argument("--apply", action="store_true")
     return parser
 
 
@@ -115,6 +123,15 @@ def main() -> None:
             _workspace(args),
             args.lakehouse,
             matches[0],
+            apply=args.apply,
+        )
+        print(json.dumps(value, indent=2))
+    elif args.command == "remove-onelake-role":
+        value = remove_named_role(
+            client,
+            _workspace(args),
+            args.lakehouse,
+            args.role,
             apply=args.apply,
         )
         print(json.dumps(value, indent=2))

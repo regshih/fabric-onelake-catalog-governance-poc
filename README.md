@@ -4,9 +4,11 @@
 
 A customer-ready reference for assessing and improving governance in an **existing Microsoft Fabric workspace** that can contain lakehouses, warehouses, notebooks, data pipelines, semantic models, mirrored items, shortcuts, and other Fabric items.
 
-OneLake catalog is built into Fabric; it is not a separate service to deploy. This repository operationalizes the practices that make catalog entries useful and safe: durable business domains, meaningful metadata, controlled tags, sensitivity labels, endorsement gates, least privilege, OneLake security, lineage, source-boundary reviews, lifecycle management, and auditing.
+OneLake catalog is built into Fabric; it is not a separate service to deploy. This repository operationalizes the practices that make catalog entries useful and safe: durable business domains, meaningful metadata, controlled native tags, least privilege, OneLake security, lineage, source-boundary reviews, lifecycle management, and auditing. Organizational sensitivity labels, DLP, and formal endorsement are optional extensions.
 
-The toolkit is passwordless, dry-run first, non-destructive, and designed for a public repository. It never writes Fabric, tenant, subscription, item, connection, or principal IDs to generated assessment reports.
+Native Fabric tags and sensitivity labels are deliberately treated as different controls. Tenant/domain tags are created and applied in Fabric and appear throughout OneLake Catalog. The OneLake Catalog Govern experience also reports sensitivity-label coverage, but those sensitivity labels still use Microsoft Purview Information Protection definitions and publication policies. Customers can use native tags without enabling the optional sensitivity-label control in this sample.
+
+The toolkit is passwordless, dry-run first, conservative by default, and designed for a public repository. Destructive role removal is isolated behind an explicitly named command and a separate `--apply` flag. The toolkit never writes Fabric, tenant, subscription, item, connection, or principal IDs to generated assessment reports.
 
 ## What this POC includes
 
@@ -113,12 +115,28 @@ onelake-governance apply-onelake-role `
 
 Do not narrow or delete `DefaultReader` until every effective access path has been reviewed. A grant from another role or permission model cannot be overridden with a deny.
 
+After reviewing every effective `ReadAll` holder, preview and explicitly remove a broad role:
+
+```powershell
+onelake-governance remove-onelake-role `
+  --workspace "My Fabric Workspace" `
+  --lakehouse governed_curated_lh `
+  --role DefaultReader
+
+onelake-governance remove-onelake-role `
+  --workspace "My Fabric Workspace" `
+  --lakehouse governed_curated_lh `
+  --role DefaultReader --apply
+```
+
+The command performs a Fabric server dry-run, uses the current ETag, and preserves every other role. Repeating it after removal is a no-op.
+
 ## Customer adoption path
 
 1. Read [docs/adoption-runbook.md](docs/adoption-runbook.md) and identify governance owners.
 2. Copy the policy and replace the sample domain, tag vocabulary, item descriptions, and group environment-variable names.
 3. Assess the existing workspace and triage every failure/warning/manual check.
-4. Have tenant/domain administrators implement approved domain, tag, sensitivity, endorsement, DLP, and audit policies.
+4. Have tenant/domain administrators implement approved domains and native Fabric tags; opt into organizational sensitivity labels, endorsement, and DLP only when those controls are in scope.
 5. Apply metadata remediation, then configure data-plane roles with Entra groups.
 6. Test Spark, SQL, OneLake APIs, shortcuts, reports, and export paths using least-privileged identities.
 7. Reassess in CI or on a schedule, store reports in a protected evidence location, and repeat after material changes.
@@ -138,6 +156,7 @@ Use [prompt/LLM_CODE_EDITOR_PROMPT.md](prompt/LLM_CODE_EDITOR_PROMPT.md) with a 
 ## Microsoft references
 
 - [OneLake catalog overview](https://learn.microsoft.com/fabric/governance/onelake-catalog-overview)
+- [Govern Fabric data in OneLake Catalog](https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub)
 - [Fabric governance and compliance overview](https://learn.microsoft.com/fabric/governance/governance-compliance-overview)
 - [OneLake security best practices](https://learn.microsoft.com/fabric/onelake/security/best-practices-secure-data-in-onelake)
 - [Data security in OneLake](https://learn.microsoft.com/fabric/onelake/security/get-started-security)
@@ -145,6 +164,7 @@ Use [prompt/LLM_CODE_EDITOR_PROMPT.md](prompt/LLM_CODE_EDITOR_PROMPT.md) with a 
 - [Domain design best practices](https://learn.microsoft.com/fabric/governance/domains-best-practices)
 - [Endorse Fabric and Power BI items](https://learn.microsoft.com/fabric/fundamentals/endorsement-promote-certify)
 - [Information protection in Fabric](https://learn.microsoft.com/fabric/governance/information-protection)
+- [Use Microsoft Purview capabilities with Fabric](https://learn.microsoft.com/fabric/governance/microsoft-purview-fabric)
 - [OneLake Catalog REST API overview](https://learn.microsoft.com/rest/api/fabric/articles/onelakecatalog/overview)
 
 ## License

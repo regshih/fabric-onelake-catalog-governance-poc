@@ -25,7 +25,7 @@ Your task:
 1. Read the entire repository, especially `README.md`, `SECURITY.md`, `docs/control-matrix.md`, `docs/adoption-runbook.md`, `docs/test-identities.md`, `docs/known-limitations.md`, and `policy/governance-policy.yaml`.
 2. Inspect the working tree before editing. Preserve unrelated user changes. Do not create or change Azure, Fabric, Entra, Purview, or GitHub resources unless I separately authorize deployment.
 3. Verify current Microsoft documentation before changing any Fabric API path, payload, permission, item support list, preview status, or security recommendation. Use only Microsoft primary documentation for technical claims.
-4. Customize the versioned policy with durable domain intent, approved tag names, item descriptions, naming rules, sensitivity-label coverage, and OneLake role templates. Keep IDs out of tracked files; role templates must reference environment-variable names.
+4. Customize the versioned policy with durable domain intent, approved native Fabric tag names, item descriptions, naming rules, optional organizational sensitivity-label coverage, and OneLake role templates. Keep IDs out of tracked files; role templates must reference environment-variable names.
 5. Keep the tool generic for existing workspaces. Unknown item types must remain visible and result in meaningful or manual controls, never silently disappear.
 6. Preserve these safety invariants:
    - passwordless `DefaultAzureCredential`; no secret/token CLI parameters;

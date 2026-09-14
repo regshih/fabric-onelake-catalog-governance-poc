@@ -19,7 +19,7 @@ Create single-tenant app registrations and their service principals without redi
 
 Scope **Service principals can call Fabric public APIs** to the API allowlist group. Do not enable it for the entire tenant solely for a POC. Grant the two reader groups workspace `Viewer`; do not use `Contributor`, `Member`, or `Admin`, because those roles bypass OneLake security.
 
-Keep a direct workspace administrator only as a documented break-glass path while validating that group-based administration works. Remove or formally accept that exception after a second administrator has confirmed access through the admin group.
+For a time-bounded POC, a direct workspace administrator can remain as a documented exception while group-based administration is demonstrated. A production customer should remove direct privileged assignments only after validating its own independent recovery or emergency-access process; this sample does not require creating a new emergency administrator.
 
 ## Validation matrix
 
@@ -29,6 +29,18 @@ Keep a direct workspace administrator only as a documented break-glass path whil
 | US restricted reader | Allow | Deny unless separately granted | Allow US rows and approved columns through a supported Fabric engine |
 
 ADLS/OneLake API reads of a table protected by row- or column-level rules should be blocked because that access path cannot apply the filters. Validate the restricted table through Spark, Lakehouse, Direct Lake on OneLake, or a SQL analytics endpoint configured for user-identity mode. Test both approved and prohibited columns and confirm that only `US` rows are returned.
+
+For a SQL analytics endpoint validation:
+
+1. Confirm the endpoint is in **User's identity access mode** under **Security > View data access mode > Data access mode settings**. A newly created endpoint starts in delegated identity mode, which does not enforce OneLake roles.
+2. Wait up to five minutes or trigger metadata sync, then confirm the translated `OLS_UsRestrictedMetricsReader` database role is visible.
+3. Connect as a real least-privileged user in `fabric-olcg-us-restricted-readers-poc`; a service principal does not substitute for every interactive SQL validation path.
+4. Query only the permitted columns and verify every returned row has `region = 'US'`.
+5. Query the hidden column and verify the SQL endpoint rejects the query. In SQL, `SELECT *` is expected to fail when CLS hides a column, so use an explicit allowed-column projection for the positive query.
+6. Connect as the public reader and verify the restricted table is unavailable.
+7. Retain only pass/fail, row counts, column names, and status categories in approved evidence storage—never sensitive row values.
+
+Do not switch an endpoint blindly. Changing between delegated and user-identity modes can remove incompatible SQL security metadata. Inventory SQL roles, permissions, RLS policies, and dependent workloads first.
 
 OneLake RLS values must be complete statements, for example:
 

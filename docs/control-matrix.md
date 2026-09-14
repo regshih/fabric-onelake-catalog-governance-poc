@@ -8,7 +8,7 @@
 | CAT-003 | Naming convention | Regex by item type | None; renames can break dependencies | Impact analysis and exception decision |
 | CAT-004 | Controlled tags | Required names vs applied tags | Apply existing tag definitions | Fabric/domain admin owns vocabulary |
 | CAT-005 | Catalog discoverability | Catalog Search result count | Metadata improvements only | Verify as a consumer after propagation |
-| PRO-001 | Sensitivity labels | Label presence for configured data types | None | Purview policy/label owner selects and publishes labels |
+| PRO-001 | Optional sensitivity labels | Label presence for explicitly configured data types | None | Organization enables this control and publishes approved labels when required |
 | SEC-001 | Group-first workspace access | Counts direct users in privileged roles | None | Access review, group/PIM design, break-glass exception |
 | SEC-002 | OneLake least privilege | Role presence and broad DefaultReader signal | Policy role merge with ETag and server dry-run | Approve groups/rules; test as Viewer/item-Read |
 | SRC-001 | Source/shortcut/mirror boundaries | Counts visible references | None | Validate source owner, credentials, exfiltration, target policy |

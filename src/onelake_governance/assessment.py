@@ -193,7 +193,8 @@ def assess(snapshot: WorkspaceSnapshot, policy: dict[str, Any]) -> AssessmentRep
                     "A sensitivity label is present."
                     if labeled
                     else "No sensitivity label is visible.",
-                    "Apply the approved Purview label and validate downstream/export behavior.",
+                    "Apply the organizationally approved sensitivity label and validate "
+                    "downstream/export behavior.",
                 )
             )
 

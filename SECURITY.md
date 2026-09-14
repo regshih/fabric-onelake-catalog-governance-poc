@@ -24,7 +24,7 @@ If a real secret was ever committed, revoke or rotate it before rewriting histor
 
 ## OneLake role change safety
 
-Role updates can unintentionally broaden or remove access. The helper reads all roles, preserves every unrelated writable field, uses the returned ETag, performs Fabric's server-side dry-run, and requires `--apply`. Peer review is still mandatory. Retain the pre-change role document in protected storage and test allowed/denied behavior with Viewer or item-Read identities.
+Role updates can unintentionally broaden or remove access. The role-change helpers read all roles, preserve every unrelated writable field, use the returned ETag, perform Fabric's server-side dry-run, and require `--apply`. Named-role removal is a separate explicit command and becomes a no-op when the target is absent. Peer review is still mandatory. Retain the pre-change role document in protected storage and test allowed/denied behavior with Viewer or item-Read identities.
 
 ## Reporting vulnerabilities
 

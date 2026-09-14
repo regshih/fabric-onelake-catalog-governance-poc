@@ -22,12 +22,10 @@ naming_patterns:
 item_defaults:
   description_required: true
 
-sensitivity_label_item_types:
-  - Lakehouse
-  - Warehouse
-  - MirroredDatabase
-  - MirroredWarehouse
-  - MirroredAzureDatabricksCatalog
+# Native Fabric tags are the default classification mechanism in this POC. Customers
+# that use Microsoft Purview Information Protection sensitivity labels can opt in by
+# listing item types here after confirming label publication, licensing, and policy intent.
+sensitivity_label_item_types: []
 
 # Tags are names, never IDs. Fabric/domain admins own the vocabulary. The remediation
 # command applies only definitions that already exist and reports the remainder as blocked.

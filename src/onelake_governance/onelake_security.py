@@ -80,6 +80,21 @@ def merged_roles(current_roles: list[dict[str, Any]], desired: dict[str, Any]) -
     }
 
 
+def roles_without(current_roles: list[dict[str, Any]], role_name: str) -> dict[str, Any] | None:
+    """Return a full-replacement payload without one uniquely named role."""
+    matches = [role for role in current_roles if role.get("name") == role_name]
+    if len(matches) > 1:
+        raise FabricApiError("Multiple OneLake roles have the requested role name")
+    if not matches:
+        return None
+    remaining = [role for role in current_roles if role.get("name") != role_name]
+    return {
+        "value": [
+            {key: role[key] for key in WRITABLE_ROLE_FIELDS if key in role} for role in remaining
+        ]
+    }
+
+
 def apply_policy_role(
     client: FabricClient,
     workspace_name: str,
@@ -112,4 +127,47 @@ def apply_policy_role(
         "role": desired["name"],
         "role_count_preserved_or_merged": len(payload["value"]),
         "note": "Existing roles were preserved; principal and tenant IDs are not emitted.",
+    }
+
+
+def remove_named_role(
+    client: FabricClient,
+    workspace_name: str,
+    lakehouse_name: str,
+    role_name: str,
+    *,
+    apply: bool = False,
+) -> dict[str, Any]:
+    """Server-dry-run and optionally remove one role while preserving all other roles."""
+    workspace = client.named(client.workspaces(), workspace_name)
+    if not workspace:
+        raise FabricApiError(f"Workspace {workspace_name!r} was not found")
+    lakehouse = client.named(client.items(str(workspace["id"])), lakehouse_name, "Lakehouse")
+    if not lakehouse:
+        raise FabricApiError(f"Lakehouse {lakehouse_name!r} was not found")
+    path = f"workspaces/{workspace['id']}/items/{lakehouse['id']}/dataAccessRoles"
+    response = client.request("GET", path)
+    payload = roles_without(client.json(response).get("value", []), role_name)
+    if payload is None:
+        return {
+            "mode": "no-op",
+            "workspace": workspace_name,
+            "lakehouse": lakehouse_name,
+            "role": role_name,
+            "note": "The named role is already absent; principal and tenant IDs are not emitted.",
+        }
+    etag = response.headers.get("ETag") or response.headers.get("Etag")
+    if not etag:
+        raise FabricApiError("OneLake role list returned no ETag; refusing full replacement")
+    headers = {"If-Match": etag}
+    client.request("PUT", f"{path}?dryRun=true", json=payload, headers=headers)
+    if apply:
+        client.request("PUT", path, json=payload, headers=headers)
+    return {
+        "mode": "apply" if apply else "server-dry-run",
+        "workspace": workspace_name,
+        "lakehouse": lakehouse_name,
+        "role": role_name,
+        "role_count_preserved": len(payload["value"]),
+        "note": "All other roles were preserved; principal and tenant IDs are not emitted.",
     }

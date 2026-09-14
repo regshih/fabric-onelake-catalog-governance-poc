@@ -15,7 +15,7 @@ flowchart TB
     CLI --> R[Redacted JSON + Markdown report]
     CLI --> M[Safe metadata remediation]
     CLI --> E[ETag + server dry-run role merge]
-    T[Tenant/domain administrators] --> D[Domains, tag vocabulary, labels, DLP, audit]
+    T[Tenant/domain administrators] --> D[Domains, native tags, audit, optional label/DLP policy]
     H[Authorized reviewers] --> C[Certification / master-data approval]
 ```
 
@@ -28,7 +28,7 @@ flowchart TB
 | OneLake data | Table/folder, row, column, Read/ReadWrite | Inventories roles; changes one policy role only with full preservation, ETag, and server dry-run |
 | Workload engine | SQL grants/RLS, semantic-model RLS, Spark | Requires engine-specific least-privilege validation |
 | Source | Mirrored/shortcut source permissions and credentials | Counts references and creates a mandatory review control |
-| Compliance | Purview labels, DLP, audit, retention | Assesses visible labels; leaves tenant policies to authorized administrators |
+| Organization policy | Optional sensitivity labels, DLP, audit, retention | Uses native Fabric tags by default; assesses label presence only when the customer opts in |
 
 Permissions are additive across planes. OneLake roles are grants, not denies. Source permissions are not automatically recreated on mirrored targets, and shortcut access must satisfy both the shortcut path and target path.
 

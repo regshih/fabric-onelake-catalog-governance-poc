@@ -2,7 +2,7 @@
 
 ## 1. Establish ownership before changing the tenant
 
-Name the Fabric platform owner, domain owner, workspace/data-product owner, data steward, security owner, Purview/compliance owner, and certification reviewers. Agree on escalation and evidence retention. A repository maintainer should not unilaterally create a new business domain, tag taxonomy, or certify data.
+Name the Fabric platform owner, domain owner, workspace/data-product owner, data steward, and security owner. Add compliance, sensitivity-label, and certification owners only when those optional organizational controls are in scope. Agree on escalation and evidence retention. A repository maintainer should not unilaterally create a new business domain, tag taxonomy, or certify data.
 
 ## 2. Define durable boundaries
 
@@ -18,7 +18,7 @@ Fork the repository and edit `policy/governance-policy.yaml`:
 - Replace the tag vocabulary with approved tenant/domain tags.
 - Add exact descriptions for known items.
 - Adjust naming patterns without renaming existing contracts blindly.
-- Define which item types require sensitivity labels.
+- Optionally define which item types require organizational sensitivity labels; leave the list empty when native Fabric tags satisfy the POC scope.
 - Define OneLake paths, RLS/CLS predicates, and environment-variable names for Entra groups.
 - Record exceptions in the customer's change/evidence system; do not hide them by weakening global defaults.
 
@@ -38,7 +38,7 @@ Promote content when it is useful. Certify or mark master data only after the or
 
 ## 6. Apply protection and access
 
-Publish appropriate Microsoft Purview sensitivity labels to the data owners. Apply labels and validate downstream inheritance/export behavior; API/service-principal flows and some non-Power BI item flows have limitations.
+Use native tenant/domain tags for OneLake Catalog classification and discovery. They are defined and applied entirely in Fabric. If the customer also uses sensitivity labels, monitor coverage in the OneLake Catalog Govern experience, then confirm that the underlying Microsoft Purview Information Protection labels are published to the data owners before applying them. Sensitivity labels are optional in this POC and have licensing, inheritance, export, and API limitations.
 
 Use Entra security groups, not individual users, for durable workspace and OneLake membership. Keep consumers as Viewer or item-Read wherever possible. Review `DefaultReader` and every overlapping role before restricting anything. For SQL analytics endpoints, switch deliberately to user identity mode when OneLake security should be evaluated per user.
 
@@ -54,7 +54,7 @@ Before each role application:
 
 Use lineage and impact analysis from sources/mirrors through pipelines/notebooks and storage to semantic models/reports. Resolve orphaned items and undocumented cross-workspace dependencies.
 
-Enable tenant audit logs and OneLake diagnostics where appropriate. Route them to a protected monitoring destination with alerting, retention, access review, and an operational owner. Configure DLP and private networking based on policy and licensing.
+Enable tenant audit logs and OneLake diagnostics where appropriate. Route them to a protected monitoring destination with alerting, retention, access review, and an operational owner. Configure DLP, sensitivity-label protection policies, and private networking only when required by organizational policy and licensing.
 
 ## 8. Operationalize
 

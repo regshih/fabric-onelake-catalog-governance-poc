@@ -3,7 +3,13 @@ import copy
 import pytest
 
 from onelake_governance.client import FabricApiError
-from onelake_governance.onelake_security import apply_policy_role, merged_roles, role_from_policy
+from onelake_governance.onelake_security import (
+    apply_policy_role,
+    merged_roles,
+    remove_named_role,
+    role_from_policy,
+    roles_without,
+)
 
 
 def test_role_merge_preserves_unrelated_unknown_fields_and_does_not_mutate():
@@ -40,6 +46,38 @@ def test_existing_named_role_is_replaced_once():
 def test_duplicate_named_role_fails_closed():
     with pytest.raises(FabricApiError, match="Multiple"):
         merged_roles([{"name": "Readers"}, {"name": "Readers"}], {"name": "Readers"})
+
+
+def test_remove_role_preserves_every_other_writable_role_field():
+    current = [
+        {"name": "DefaultReader", "kind": "Policy", "decisionRules": [], "members": {}},
+        {
+            "name": "Restricted",
+            "kind": "Policy",
+            "decisionRules": [{"effect": "Permit"}],
+            "members": {"microsoftEntraMembers": []},
+            "serverOnly": "not writable",
+        },
+    ]
+
+    payload = roles_without(current, "DefaultReader")
+
+    assert payload == {
+        "value": [
+            {
+                "name": "Restricted",
+                "kind": "Policy",
+                "decisionRules": [{"effect": "Permit"}],
+                "members": {"microsoftEntraMembers": []},
+            }
+        ]
+    }
+    assert roles_without(current, "Missing") is None
+
+
+def test_remove_duplicate_named_role_fails_closed():
+    with pytest.raises(FabricApiError, match="Multiple"):
+        roles_without([{"name": "Readers"}, {"name": "Readers"}], "Readers")
 
 
 def test_role_reads_group_ids_from_environment_without_returning_them(monkeypatch):
@@ -188,3 +226,54 @@ def test_apply_role_always_server_dry_runs_and_redacts_ids(monkeypatch):
     assert client.calls[1][2]["json"] == client.calls[2][2]["json"]
     assert "group-private" not in str(result)
     assert "tenant-private" not in str(result)
+
+
+def test_remove_role_always_server_dry_runs_and_preserves_other_roles():
+    client = Client()
+    result = remove_named_role(client, "Demo", "Lake", "DefaultReader", apply=True)
+
+    assert [call[0] for call in client.calls] == ["GET", "PUT", "PUT"]
+    assert client.calls[1][1].endswith("?dryRun=true")
+    assert client.calls[1][2]["json"] == {"value": []}
+    assert client.calls[1][2]["json"] == client.calls[2][2]["json"]
+    assert result["role_count_preserved"] == 0
+
+
+def test_remove_role_preview_never_applies():
+    client = Client()
+    result = remove_named_role(client, "Demo", "Lake", "DefaultReader")
+
+    assert [call[0] for call in client.calls] == ["GET", "PUT"]
+    assert client.calls[1][1].endswith("?dryRun=true")
+    assert result["mode"] == "server-dry-run"
+
+
+def test_remove_missing_role_is_idempotent_no_op():
+    class MissingRoleResponse(Response):
+        @staticmethod
+        def json():
+            return {"value": [{"name": "Other", "decisionRules": [], "members": {}}]}
+
+    class MissingRoleClient(Client):
+        def request(self, method, path, **kwargs):
+            self.calls.append((method, path, kwargs))
+            return MissingRoleResponse()
+
+    client = MissingRoleClient()
+    result = remove_named_role(client, "Demo", "Lake", "DefaultReader", apply=True)
+
+    assert [call[0] for call in client.calls] == ["GET"]
+    assert result["mode"] == "no-op"
+
+
+def test_remove_role_fails_closed_without_etag():
+    class NoEtagResponse(Response):
+        headers = {}
+
+    class NoEtagClient(Client):
+        def request(self, method, path, **kwargs):
+            self.calls.append((method, path, kwargs))
+            return NoEtagResponse()
+
+    with pytest.raises(FabricApiError, match="no ETag"):
+        remove_named_role(NoEtagClient(), "Demo", "Lake", "DefaultReader", apply=True)
