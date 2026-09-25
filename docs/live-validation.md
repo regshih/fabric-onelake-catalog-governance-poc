@@ -4,7 +4,7 @@ This file records only public-safe facts. It deliberately excludes tenant, subsc
 
 ## Validation environment
 
-- Validation date: 2026-09-14
+- Validation date: 2026-09-24
 - Authentication: passwordless Microsoft Entra user via Azure CLI / `DefaultAzureCredential`
 - Capacity: existing active Fabric capacity; no capacity was provisioned or resized
 - Data: deterministic synthetic records only
@@ -35,7 +35,7 @@ This file records only public-safe facts. It deliberately excludes tenant, subsc
 | Ephemeral identity credentials | Pass | Credentials were created only for the tests, revoked immediately afterward, and both applications were verified to retain zero credentials |
 | Fabric service-principal tenant setting | Pass | The dedicated API allow-list group was added while preserving the existing scoped group configuration |
 | SQL endpoint mode-change precheck | Pass | Endpoint is healthy and contains no custom SQL security policies, predicates, explicit database permissions, views, procedures, or functions |
-| Supported-engine RLS/CLS positive test | Awaiting one Fabric UI setting | The SQL endpoint is healthy but remains in delegated-identity mode with zero synchronized `OLS_` roles; switch it to User's identity access mode, wait for sync, then run the documented allowed-row/hidden-column test |
+| Supported-engine RLS/CLS positive test | Pass | SQL endpoint switched to User's identity mode and both `OLS_` roles synchronized. The public-reader identity returned all three public rows and was denied the restricted table. The restricted-reader identity returned exactly two rows, all in the US region, using only approved columns; the hidden column, `SELECT *`, and the unrelated public table were denied. Both temporary credentials were revoked and both applications were verified to retain zero credentials. |
 | Native Fabric classification tags | Pass | Classification tags are defined, applied, discoverable, and managed in Fabric/OneLake Catalog without an external catalog deployment |
 | Organizational sensitivity labels, DLP, certification | Not in POC scope | Optional customer controls; OneLake Catalog surfaces governance insights, while sensitivity labels remain backed by the organization's Microsoft Purview Information Protection label policy |
 
