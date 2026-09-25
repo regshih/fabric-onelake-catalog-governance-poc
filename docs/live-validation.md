@@ -13,10 +13,10 @@ This file records only public-safe facts. It deliberately excludes tenant, subsc
 
 | Check | Status | Evidence retained here |
 |---|---|---|
-| Unit tests and lint | Pass | 51 tests, 92% coverage, Ruff clean |
+| Unit tests and lint | Pass | 53 tests, 92% coverage, Ruff clean |
 | Public-tree secret/privacy scan | Pass | No configured finding; values never printed |
-| Git history secret/privacy scan | Pass | Full reachable history scanned after the initial commit and before the private review handoff |
-| GitHub release state | Pass | Repository is private pending owner review; public-release security controls remain enabled |
+| Git history secret/privacy scan | Pass | Full reachable history scanned after the initial commit and immediately before public release |
+| GitHub release state | Pass | Repository is public; secret scanning, push protection, dependency alerts/updates, private vulnerability reporting, CodeQL default setup, and default-branch rules are enabled |
 | Workspace and four demo items created | Pass | Lakehouse, warehouse, notebook, and pipeline; lakehouse also produced its managed SQL endpoint |
 | Pipeline definition read-back | Pass | One bound notebook activity present |
 | Synthetic notebook run | Pass | Completed; no row output retained |
@@ -39,6 +39,6 @@ This file records only public-safe facts. It deliberately excludes tenant, subsc
 | Native Fabric classification tags | Pass | Classification tags are defined, applied, discoverable, and managed in Fabric/OneLake Catalog without an external catalog deployment |
 | Organizational sensitivity labels, DLP, certification | Not in POC scope | Optional customer controls; OneLake Catalog surfaces governance insights, while sensitivity labels remain backed by the organization's Microsoft Purview Information Protection label policy |
 
-After a fresh interactive sign-in, the Fabric administrator APIs accepted the scoped governance changes. Repeated dry-runs for tenant bootstrap and workspace remediation return zero changes, and repeated `DefaultReader` removal is a no-op, demonstrating idempotency. The Fabric workspace is not connected to Git: the repository stays private for review, and the project intentionally does not persist the broad GitHub CLI credential as a Fabric connection. Create a separate fine-grained GitHub token with only the required repository contents permission when Git integration is approved.
+After a fresh interactive sign-in, the Fabric administrator APIs accepted the scoped governance changes. Repeated dry-runs for tenant bootstrap and workspace remediation return zero changes, and repeated `DefaultReader` removal is a no-op, demonstrating idempotency. The Fabric workspace is not connected to Git, and the project does not persist a GitHub credential as a Fabric connection. Create a separate fine-grained GitHub token with only the required repository contents permission if Git integration is approved later.
 
 Do not interpret an automated `PASS` as a compliance certification. Customer deployments must repeat the tests in their own tenant with least-privileged identities and retain detailed evidence in an approved private location.
