@@ -20,6 +20,8 @@ python tools/security_scan.py --working-tree --git-history
 
 Review notebook sources for output, pipeline definitions for bound IDs, and reports/logs/screenshots manually. GitHub Actions also runs Gitleaks and the repository scanner.
 
+Before changing visibility, also verify that every reachable branch and tag was scanned, commit metadata uses a public-safe author address, ignored reports and local environment files remain untracked, and completed Actions logs contain no environment output. After making the repository public, confirm GitHub secret scanning, dependency alerts, private vulnerability reporting, and default-branch protection are enabled.
+
 If a real secret was ever committed, revoke or rotate it before rewriting history. Do not open a public issue containing the value. If customer data or private identifiers were published, follow the customer's incident process.
 
 ## OneLake role change safety

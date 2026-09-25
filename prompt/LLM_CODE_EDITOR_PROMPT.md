@@ -30,7 +30,7 @@ Your task:
 6. Preserve these safety invariants:
    - passwordless `DefaultAzureCredential`; no secret/token CLI parameters;
    - dry-run by default and explicit `--apply` for writes;
-   - no delete, rename, capacity start/stop/resize, sharing, or role-removal automation;
+   - no delete, rename, capacity start/stop/resize, sharing, or broad role-removal automation; preserve the existing named-role removal guardrails (separate command, server dry-run, current ETag, explicit `--apply`, and no-op when absent);
    - no report fields containing tenant, subscription, capacity, workspace, item, domain, operation, principal, or connection IDs;
    - OneLake full-role updates preserve every existing role/field, use the GET ETag, call `dryRun=true`, and only then apply the identical payload;
    - OneLake RLS rules use a complete `SELECT * FROM ... WHERE ...` statement and are tested through an engine that can enforce RLS/CLS;

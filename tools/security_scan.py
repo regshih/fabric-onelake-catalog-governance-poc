@@ -12,15 +12,25 @@ ROOT = Path(__file__).resolve().parents[1]
 IGNORED_PARTS = {".git", ".venv", "venv", "reports", "__pycache__", ".pytest_cache"}
 TEXT_SUFFIXES = {
     "",
+    ".bicep",
     ".cfg",
+    ".csv",
     ".example",
     ".ini",
+    ".ipynb",
     ".json",
+    ".kql",
     ".md",
     ".py",
     ".ps1",
+    ".sh",
+    ".sql",
+    ".tf",
+    ".tfvars",
     ".toml",
+    ".tsv",
     ".txt",
+    ".xml",
     ".yaml",
     ".yml",
 }
@@ -36,6 +46,20 @@ PATTERNS = {
     "credential-assignment": re.compile(
         r"\b(?:password|passwd|pwd|client_secret|accountkey|access_token)\s*[:=]\s*['\"]?[^<\s'\"]{8,}",
         re.I,
+    ),
+    "entra-tenant-address": re.compile(
+        r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.onmicrosoft\.com\b", re.I
+    ),
+    "fabric-sql-endpoint": re.compile(
+        r"\b[A-Z0-9-]{12,}(?:\.[A-Z0-9-]+)*\.datawarehouse\.fabric\.microsoft\.com\b",
+        re.I,
+    ),
+    "onelake-abfss-endpoint": re.compile(
+        r"\babfss://[A-Z0-9._-]+@onelake\.dfs\.fabric\.microsoft\.com/[A-Z0-9._/-]+",
+        re.I,
+    ),
+    "private-key": re.compile(
+        r"-----BEGIN (?:RSA |EC |OPENSSH )?" + r"PRIVATE KEY-----", re.I
     ),
 }
 ALLOW_UUIDS = {"00000000-0000-0000-0000-000000000000"}

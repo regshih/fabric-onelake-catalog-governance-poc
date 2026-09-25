@@ -143,6 +143,14 @@ The command performs a Fabric server dry-run, uses the current ETag, and preserv
 
 Use [prompt/LLM_CODE_EDITOR_PROMPT.md](prompt/LLM_CODE_EDITOR_PROMPT.md) with a code editor LLM to adapt the repository while keeping its safety boundaries.
 
+## Fabric Git integration is optional
+
+This toolkit does not require the Fabric workspace to be connected to Git. It assesses and remediates an authorized workspace through Fabric APIs at runtime, so a customer can clone or fork this repository and use it with an existing workspace without enabling Fabric Git integration.
+
+Fabric Git integration is useful when a team also wants source control, branches, pull-request review, and rollback for supported Fabric item definitions. A customer must connect its own workspace to its own repository or fork; this repository does not carry a Fabric connection or credential with it. Use a development workspace, a dedicated branch/folder, and a fine-grained GitHub token scoped only to the selected repository when opting in.
+
+Fabric Git is not a complete backup: it does not include OneLake data, credentials, connections, every item type, or every tenant/workspace setting. Review the initial synchronization direction before connecting two nonempty locations. See [Microsoft's Git integration overview](https://learn.microsoft.com/fabric/cicd/git-integration/intro-to-git-integration) and [current limitations](https://learn.microsoft.com/fabric/cicd/git-integration/git-integration-process).
+
 ## Documentation
 
 - [Architecture and trust boundaries](docs/architecture.md)
